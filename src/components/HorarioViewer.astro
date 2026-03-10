@@ -1,0 +1,251 @@
+---
+import type { HorarioTabla, DiaSemana } from "../data/recorridos";
+import { DIA_LABELS } from "../data/recorridos";
+
+interface Props {
+  nombreRecorrido: string;
+  tablas: HorarioTabla[];
+}
+
+const { nombreRecorrido, tablas } = Astro.props;
+
+const DIA_ORDER: DiaSemana[] = [
+  'lunes-viernes',
+  'sabado',
+  'domingo-feriado',
+  'sabado-domingo-feriado',
+];
+
+const diasDisponibles = DIA_ORDER.filter((dia) =>
+  tablas.some((t) => t.dia === dia)
+);
+
+const primerDia = diasDisponibles[0];
+
+const NOTAS_DIAS = new Set(['Lun–Vie', 'Sábado', 'Domingo / Feriado']);
+
+function tablaTieneEmpresa(tabla: HorarioTabla): boolean {
+  return tabla.filas.some((f) => f.notas && !NOTAS_DIAS.has(f.notas));
+}
+
+const SPLIT_THRESHOLD = 15;
+function splitFilas<T>(arr: T[]): [T[], T[]] {
+  const mid = Math.ceil(arr.length / 2);
+  return [arr.slice(0, mid), arr.slice(mid)];
+}
+---
+
+<section aria-label={`Horarios del recorrido ${nombreRecorrido}`}>
+  <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
+    {nombreRecorrido}
+  </h2>
+
+  <!-- Pestañas de día -->
+  <div role="tablist" aria-label="Seleccionar día" class="mt-4 flex flex-wrap gap-2 sm:mt-5">
+    {diasDisponibles.map((dia) => (
+      <button
+        role="tab"
+        type="button"
+        data-tab={dia}
+        aria-selected={dia === primerDia ? 'true' : 'false'}
+        aria-controls={`panel-${dia}`}
+        class={[
+          'rounded-xl border px-4 py-2 text-sm font-semibold transition sm:px-5 sm:py-2.5 sm:text-base',
+          dia === primerDia
+            ? 'border-sky-400 bg-sky-500 text-slate-950'
+            : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-sky-400 hover:text-slate-50',
+        ].join(' ')}
+      >
+        {DIA_LABELS[dia]}
+      </button>
+    ))}
+  </div>
+
+  <!-- Paneles de contenido por día -->
+  <div class="mt-5">
+    {diasDisponibles.map((dia) => (
+      <div
+        id={`panel-${dia}`}
+        role="tabpanel"
+        data-panel={dia}
+        hidden={dia !== primerDia}
+      >
+        <!-- Buscador y filtros de turno -->
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input
+            type="search"
+            placeholder="Buscar hora (ej: 08:30)…"
+            data-search-input
+            class="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus-visible:border-sky-400 sm:max-w-xs"
+          />
+          <div class="flex flex-wrap gap-1" data-filter-group>
+            {[
+              { key: 'todas',  label: 'Todas'   },
+              { key: 'manana', label: 'Mañana'  },
+              { key: 'tarde',  label: 'Tarde'   },
+              { key: 'noche',  label: 'Noche'   },
+            ].map(({ key, label }) => (
+              <button
+                type="button"
+                data-filter-btn={key}
+                class={[
+                  'rounded-lg border px-3 py-1.5 text-xs font-semibold transition sm:text-sm',
+                  key === 'todas'
+                    ? 'border-sky-400 bg-sky-500 text-slate-950'
+                    : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-sky-400 hover:text-slate-50',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p class="mb-3 text-xs text-slate-400">
+          Mañana 05:00–11:59 · Tarde 12:00–19:59 · Noche 20:00–04:59
+        </p>
+
+        <!-- Tablas lado a lado -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {tablas
+            .filter((t) => t.dia === dia)
+            .map((tabla) => {
+              const tieneNotas = tablaTieneEmpresa(tabla);
+              return (
+                <section class="rounded-2xl border border-slate-700 bg-slate-900/70 p-3 sm:p-4" data-tabla>
+                  <h3 class="text-base font-semibold text-slate-50 sm:text-lg">
+                    {tabla.titulo}
+                  </h3>
+                  {tabla.sentido && (
+                    <p class="mt-0.5 text-sm text-sky-300">
+                      {tabla.sentido}
+                    </p>
+                  )}
+                  <p data-empty-msg class="mt-3 hidden text-sm text-slate-400 italic">
+                    Sin resultados para este filtro.
+                  </p>
+                  {(() => {
+                    const isLong = tabla.filas.length > SPLIT_THRESHOLD;
+                    const [leftFilas, rightFilas] = isLong
+                      ? splitFilas(tabla.filas)
+                      : [tabla.filas, [] as typeof tabla.filas];
+
+                    const thCls = 'px-2 py-2 font-semibold text-slate-200 sm:px-3';
+                    const tdCls = 'px-2 py-1.5 font-mono font-semibold text-slate-50 sm:px-3';
+                    const tdNotaCls = 'px-2 py-1.5 text-slate-300 sm:px-3';
+                    const trCls = 'border-b border-slate-800 last:border-none odd:bg-slate-900/60 even:bg-slate-900/30';
+
+                    const renderRows = (filas: typeof tabla.filas) =>
+                      filas.map((fila) => (
+                        <tr data-hora={fila.hora} class={trCls}>
+                          <td class={tdCls}>{fila.hora}</td>
+                          {tieneNotas && <td class={tdNotaCls}>{fila.notas ?? '—'}</td>}
+                        </tr>
+                      ));
+
+                    const renderTable = (filas: typeof tabla.filas) => (
+                      <table class="w-full border-collapse text-left text-sm sm:text-base">
+                        <thead>
+                          <tr class="border-b border-slate-700 bg-slate-900">
+                            <th class={thCls}>Hora</th>
+                            {tieneNotas && <th class={thCls}>Empresa</th>}
+                          </tr>
+                        </thead>
+                        <tbody>{renderRows(filas)}</tbody>
+                      </table>
+                    );
+
+                    return isLong ? (
+                      <div class="mt-3 flex gap-3">
+                        <div class="flex-1 min-w-0">{renderTable(leftFilas)}</div>
+                        <div class="flex-1 min-w-0">{renderTable(rightFilas)}</div>
+                      </div>
+                    ) : (
+                      <div class="mt-3">{renderTable(leftFilas)}</div>
+                    );
+                  })()}
+                </section>
+              );
+            })}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  function getHour(hora: string): number {
+    return parseInt(hora.split(':')[0], 10);
+  }
+
+  function matchesTurno(hora: string, turno: string): boolean {
+    if (turno === 'todas') return true;
+    const h = getHour(hora);
+    if (turno === 'manana') return h >= 5  && h <= 11;
+    if (turno === 'tarde')  return h >= 12 && h <= 19;
+    if (turno === 'noche')  return h >= 20 || h <= 4;
+    return true;
+  }
+
+  function applyFilters(panel: HTMLElement) {
+    const searchInput = panel.querySelector<HTMLInputElement>('[data-search-input]');
+    const activeFiltroBtn = panel.querySelector<HTMLButtonElement>('[data-filter-btn].border-sky-400');
+    const term   = searchInput?.value.trim().toLowerCase() ?? '';
+    const turno  = activeFiltroBtn?.dataset.filterBtn ?? 'todas';
+
+    panel.querySelectorAll<HTMLElement>('[data-tabla]').forEach((tabla) => {
+      let visibles = 0;
+      tabla.querySelectorAll<HTMLTableRowElement>('tbody tr').forEach((row) => {
+        const hora = row.dataset.hora ?? '';
+        const show = hora.includes(term) && matchesTurno(hora, turno);
+        row.hidden = !show;
+        if (show) visibles++;
+      });
+      const msg = tabla.querySelector<HTMLElement>('[data-empty-msg]');
+      if (msg) msg.classList.toggle('hidden', visibles > 0);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-panel]').forEach((panel) => {
+    // Búsqueda por texto
+    panel.querySelector('[data-search-input]')?.addEventListener('input', () => {
+      applyFilters(panel);
+    });
+
+    panel.querySelectorAll<HTMLButtonElement>('[data-filter-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        panel.querySelectorAll<HTMLButtonElement>('[data-filter-btn]').forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('border-sky-400',   active);
+          b.classList.toggle('bg-sky-500',        active);
+          b.classList.toggle('text-slate-950',    active);
+          b.classList.toggle('border-slate-700', !active);
+          b.classList.toggle('bg-slate-900/70',  !active);
+          b.classList.toggle('text-slate-200',   !active);
+        });
+        applyFilters(panel);
+      });
+    });
+  });
+
+  const tabs   = document.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+  const panels = document.querySelectorAll<HTMLElement>('[data-panel]');
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const dia = tab.dataset.tab!;
+
+      tabs.forEach((t) => {
+        const active = t.dataset.tab === dia;
+        t.setAttribute('aria-selected', String(active));
+        t.classList.toggle('border-sky-400',   active);
+        t.classList.toggle('bg-sky-500',        active);
+        t.classList.toggle('text-slate-950',    active);
+        t.classList.toggle('border-slate-700', !active);
+        t.classList.toggle('bg-slate-900/70',  !active);
+        t.classList.toggle('text-slate-200',   !active);
+      });
+
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== dia; });
+    });
+  });
+</script>

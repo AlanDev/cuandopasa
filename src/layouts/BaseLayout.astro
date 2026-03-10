@@ -1,0 +1,42 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/jpg" href="/logo.jpg" />
+    <link rel="icon" href="/logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-6 sm:py-10">
+      <header class="mb-6 sm:mb-8">
+        <h1 class="text-balance text-center text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl">
+          Horarios de Colectivos Chaco – Corrientes
+        </h1>
+        <p class="mt-2 text-center text-base text-slate-200 sm:text-lg">
+          Elegí el recorrido y hace click en el botón para ver el horario.
+        </p>
+      </header>
+
+      <section class="flex-1">
+        <slot />
+      </section>
+
+      <footer class="mt-8 border-t border-slate-800 pt-4 text-center text-xs text-slate-400">
+        Información orientativa. Verificá siempre los horarios con la empresa.
+      </footer>
+    </main>
+  </body>
+</html>
+
