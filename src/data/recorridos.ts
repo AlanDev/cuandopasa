@@ -3610,7 +3610,7 @@ export const recorridos: Recorrido[] = [
   {
     id: "sarmiento",
     nombre: "Sarmiento",
-    descripcion: "Línea Sarmiento entre Chaco y Corrientes.",
+    descripcion: "Recorrido por Sarmiento.",
     palabrasClave: [
       "sarmiento",
       "chaco",
@@ -3669,7 +3669,7 @@ export const recorridos: Recorrido[] = [
   {
     id: "barranqueras",
     nombre: "Barranqueras",
-    descripcion: "Recorrido hacia Barranqueras.",
+    descripcion: "Recorrido por Barranqueras.",
     palabrasClave: [
       "barranqueras",
       "chaco",

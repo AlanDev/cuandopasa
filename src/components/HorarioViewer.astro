@@ -39,8 +39,6 @@ function splitFilas<T>(arr: T[]): [T[], T[]] {
   <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
     {nombreRecorrido}
   </h2>
-
-  <!-- Pestañas de día -->
   <div role="tablist" aria-label="Seleccionar día" class="mt-4 flex flex-wrap gap-2 sm:mt-5">
     {diasDisponibles.map((dia) => (
       <button
@@ -61,7 +59,6 @@ function splitFilas<T>(arr: T[]): [T[], T[]] {
     ))}
   </div>
 
-  <!-- Paneles de contenido por día -->
   <div class="mt-5">
     {diasDisponibles.map((dia) => (
       <div
@@ -70,7 +67,6 @@ function splitFilas<T>(arr: T[]): [T[], T[]] {
         data-panel={dia}
         hidden={dia !== primerDia}
       >
-        <!-- Buscador y filtros de turno -->
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="search"
@@ -104,7 +100,6 @@ function splitFilas<T>(arr: T[]): [T[], T[]] {
           Mañana 05:00–11:59 · Tarde 12:00–19:59 · Noche 20:00–04:59
         </p>
 
-        <!-- Tablas lado a lado -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {tablas
             .filter((t) => t.dia === dia)
@@ -206,7 +201,6 @@ function splitFilas<T>(arr: T[]): [T[], T[]] {
   }
 
   document.querySelectorAll<HTMLElement>('[data-panel]').forEach((panel) => {
-    // Búsqueda por texto
     panel.querySelector('[data-search-input]')?.addEventListener('input', () => {
       applyFilters(panel);
     });
