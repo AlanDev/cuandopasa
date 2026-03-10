@@ -33,8 +33,11 @@ const { title } = Astro.props;
         <slot />
       </section>
 
-      <footer class="mt-8 border-t border-slate-800 pt-4 text-center text-xs text-slate-400">
-        Información orientativa. Verificá siempre los horarios con la empresa.
+      <footer class="mt-8 border-t border-slate-800 pt-4 text-center text-xs text-slate-500 space-y-1">
+        <p>Información orientativa. Verificá siempre los horarios con la empresa.</p>
+        <p class="text-slate-600 mt-2">
+          Hecho por <span class="font-medium text-slate-400">Alan Quenardelle</span>
+        </p>
       </footer>
     </main>
   </body>
