@@ -5,44 +5,11 @@ import { recorridos } from "../data/recorridos";
 ---
 
 <BaseLayout title="Horarios de Colectivos Chaco – Corrientes">
-  <section aria-label="Buscador de recorridos" class="mt-2">
-    <label class="block">
-      <span class="text-sm font-medium text-slate-200 sm:text-base">
-        Buscar recorrido
-      </span>
-      <input
-        id="buscador-recorridos"
-        type="search"
-        placeholder="Ej: Sarmiento, Barranqueras, Campus..."
-        class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2 text-base text-slate-50 placeholder:text-slate-500 shadow-inner shadow-black/40 focus-visible:border-sky-400 sm:px-4 sm:py-3 sm:text-lg"
-      />
-    </label>
-    <p class="mt-2 text-xs text-slate-400 sm:text-sm">
-      Escribí parte del nombre para filtrar. Tocá el botón del recorrido para ver el horario.
-    </p>
-  </section>
-
   <section class="mt-6 grid gap-4 sm:mt-8">
     {recorridos.map((recorrido) => (
       <LineaCard recorrido={recorrido} />
     ))}
   </section>
 
-  <script>
-    const input = document.getElementById("buscador-recorridos");
-    const cards = document.querySelectorAll("[data-recorrido-nombre]");
-
-    if (input) {
-      input.addEventListener("input", () => {
-        const term = input.value.toLowerCase().trim();
-
-        cards.forEach((card) => {
-          const nombre = card.dataset.recorridoNombre ?? "";
-          const visible = term === "" || nombre.includes(term);
-          card.classList.toggle("hidden", !visible);
-        });
-      });
-    }
-  </script>
 </BaseLayout>
 
